@@ -6,6 +6,7 @@
 
 ### Future requirements
 * rustacuda
+* iamgeproc
 
 ### Build OpenCV
 ```

@@ -1,13 +1,9 @@
 [package]
-name = "unswirl"
+name = "skew"
 version = "0.1.0"
 authors = ["John Wennstrøm <john.wennstrom@protonmail.com>"]
 edition = "2018"
 
-[workspace]
-
 [dependencies]
-skew = {path = "libs/skew"}
 image = "0.22.4"
-opencv = {version = "0.29", features = ["contrib"]}
 imageproc = "0.19.2"
