@@ -55,6 +55,22 @@ fn _bounding_box_unskew(img_gray: opencv::core::Mat) -> opencv::Result<opencv::c
     let mut points: types::VectorOfPoint = types::VectorOfPoint::new();
 
     // Iterate pixels in image
+    /**
+        TODO: Make filter if possible
+      
+        fn hof() {
+            let filter = |predicate: fn(&i32) -> bool, xs: Vec<i32>| {
+                // A good Reddit post on how Filter works https://www.reddit.com/r/rust/comments/3bmua6/can_someone_help_me_understand_stditerfilter/
+                xs.into_iter().filter(predicate).collect::<Vec<i32>>()
+            };
+
+            let is_even = |x: &i32| x % 2 == 0;
+
+            let result = filter(is_even, vec![1, 2, 3, 4, 5, 6]);
+
+            assert_eq!(result, vec![2, 4, 6]);
+        }
+    */
     for col in 0..img_inverted.cols().unwrap() {
         for row in 0..img_inverted.rows().unwrap() {
             let pixel = img_inverted.at_2d::<u8>(row, col).unwrap();
