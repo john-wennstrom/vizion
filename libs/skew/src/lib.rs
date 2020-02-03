@@ -79,8 +79,10 @@ fn _bounding_box_unskew(img_gray: opencv::core::Mat) -> opencv::Result<opencv::c
     // min_area_rect returns a value in the range [-90, 0). As the rectangle rotates 
     // cw the angle value goes towards zero, when zero is reached, angle is set back to -90.
     if angle < -45.0 {
-        angle = -(90.0 + angle);
-    }
+        angle = 90.0 + angle;
+    } 
+
+    println!("Rotated: {:?} deg", angle);
 
     let center = rectangle.center().unwrap();
     let size = img_gray.size().unwrap();

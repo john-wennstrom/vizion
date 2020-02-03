@@ -27,4 +27,7 @@ Build
 ```cargo build```
 
 Run
-```target/debug/unswirl examples/test.png examples/test1.png```
+```
+target/debug/unswirl examples/src1.png examples/dst1.png
+target/debug/unswirl examples/src2.png examples/dst2.png
+```
