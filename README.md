@@ -16,7 +16,7 @@ cmake -D CMAKE_BUILD_TYPE=Release -D OPENCV_GENERATE_PKGCONFIG=ON -D CMAKE_INSTA
 make -j6
 ```
 
-### Build unswirl
+### Build and run unswirl
 Export environment variable for package config files, where opencv4.pc exist
 ```export PKG_CONFIG_PATH=[path]```
 
@@ -25,3 +25,6 @@ Configure
 
 Build
 ```cargo build```
+
+Run
+```target/debug/unswirl examples/test.png examples/test1.png```
