@@ -1,44 +1,108 @@
-extern crate imageproc;
+extern crate opencv;
+extern crate cast;
 
-use std::path::Path;
-use imageproc::edges::canny;
-use imageproc::hough::{detect_lines, PolarLine, LineDetectionOptions};
-use image::{GrayImage};
-use std::f32;
-use std::default::Default;
+use opencv::{
+    core,
+    prelude::*,
+    imgproc,
+    imgcodecs,
+    types
+};
 
-struct Settings {
-    max_threshold: f32
-}
+use cast::f64;
 
-impl Default for Settings {
-    fn default() -> Settings {
-        Settings {
-            max_threshold: 5.0_f32.sqrt() * 2.0 * 255.0
-        }
-    }
-}
+pub fn unskew(src: &str, dst: &str) -> opencv::Result<()> {
+    let img_gray = imgcodecs::imread(src.as_ref(), imgcodecs::IMREAD_GRAYSCALE).unwrap();
+    
+    let img_unskew = _bounding_box_unskew(img_gray);
 
-pub fn determine_skew(image: &GrayImage, output_dir: &Path) -> Vec<PolarLine> {
-    return _determine_skew(&image, &output_dir);
-}
+    let params = types::VectorOfint::new();
 
-fn _determine_skew(image: &GrayImage, output_dir: &Path) -> Vec<PolarLine> {
-    let settings = Settings{..Default::default()};
-
-    // Detect edges using Canny algorithm
-    let edges = canny(image, settings.max_threshold * 0.01, settings.max_threshold * 0.2);
-
-    let canny_path = output_dir.join("canny.png");
-    edges.save(&canny_path).unwrap();
-
-    // Detect lines using Hough transform
-    let options = LineDetectionOptions {
-        vote_threshold: 10,
-        suppression_radius: 1
+    let img = match img_unskew {
+        Ok(img) => img,
+        Err(e) => return Err(e),
     };
 
-    let lines: Vec<PolarLine> = detect_lines(&edges, options);
+    let result = imgcodecs::imwrite(dst.as_ref(), &img, &params);
 
-    return lines;
+    match result {
+        Ok(_) => return Ok(()),
+        Err(e) => return Err(e),
+    };
+}
+
+
+fn _bounding_box_unskew(img_gray: opencv::core::Mat) -> opencv::Result<opencv::core::Mat> {
+    let mut img_inverted = core::Mat::default()?;
+    let mut img_rotated = core::Mat::default()?;
+
+    // Invert the text and determine the optimal threshold value using Otsu's
+    let threshold_result = imgproc::threshold(
+        &img_gray, 
+        &mut img_inverted, 
+        0.0, 
+        255.0, 
+        imgproc::THRESH_BINARY_INV | imgproc::THRESH_OTSU
+    );
+
+    // Unwrap the threshold result or return error
+    let threshold = match threshold_result {
+        Ok(threshold) => threshold,
+        Err(e) => return Err(e),
+    };
+
+    // Instantiate new vector of points
+    let mut points: types::VectorOfPoint = types::VectorOfPoint::new();
+
+    // Iterate pixels in image
+    for col in 0..img_inverted.cols().unwrap() {
+        for row in 0..img_inverted.rows().unwrap() {
+            let pixel = img_inverted.at_2d::<u8>(row, col).unwrap();
+
+            // If pixel value is higher than determined threshold value, push coordinates to point vector
+            if f64(*pixel) > threshold {
+                let point  = core::Point_::new(col, row);
+                points.push(point);
+            }
+        }
+    }
+
+    let rectangle_result = imgproc::min_area_rect(&points);
+
+    let rectangle = match rectangle_result {
+        Ok(rectangle) => rectangle,
+        Err(e) => return Err(e),
+    };
+
+    let mut angle = rectangle.angle().unwrap();
+
+    // min_area_rect returns a value in the range [-90, 0). As the rectangle rotates 
+    // cw the angle value goes towards zero, when zero is reached, angle is set back to -90.
+    if angle < -45.0 {
+        angle = -(90.0 + angle);
+    }
+
+    let center = rectangle.center().unwrap();
+    let size = img_gray.size().unwrap();
+
+    // Calculate an affinate matrix of 2D rotation
+    let m = imgproc::get_rotation_matrix_2d(center, angle as f64, 1.0);
+
+    let scalar = core::Scalar_::new(0.0, 0.0, 0.0, 0.0);
+
+    //Apply affine transformation
+    let warp_result = imgproc::warp_affine(
+        &img_gray, 
+        &mut img_rotated,
+        &m.unwrap(),
+        size,
+        imgproc::INTER_LINEAR,
+        core::BORDER_REPLICATE,
+        scalar
+    );
+
+    match warp_result {
+        Ok(_) => return Ok(img_rotated),
+        Err(e) => return Err(e),
+    };
 }
