@@ -33,3 +33,6 @@ cd build
 cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_DOCS=ON -D OPENCV_GENERATE_PKGCONFIG=ON -D CMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -D OPENCV_EXTRA_MODULES_PATH=$OPENCV_CONTRIB_PATH/modules ..
 make -j $(nproc)
 sudo make install
+
+sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+sudo ldconfig

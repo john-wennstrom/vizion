@@ -18,6 +18,5 @@ Make sure .env file is configured, then run
 
 Run examples
 ```
-target/debug/unswirl examples/src1.png examples/dst1.png
-target/debug/unswirl examples/src2.png examples/dst2.png
+target/debug/vizion unskew examples/src1.png examples/dst.png
 ```
