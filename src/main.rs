@@ -3,6 +3,8 @@ extern crate unskew;
 extern crate face;
 
 use unskew::Unskew;
+use face::Face;
+
 use clap::{
   crate_version, 
   crate_authors, 
@@ -19,6 +21,7 @@ fn main() {
     .version(crate_version!())
     .author(crate_authors!())
     .about("Computer vision library")
+
     .subcommand(SubCommand::with_name("unskew")
       .about("Unskews an image with text")
       .version("0.1.0")
@@ -31,6 +34,15 @@ fn main() {
           .help("Destination file")
           .required(true)
           .index(2)))
+    
+    .subcommand(SubCommand::with_name("face")
+      .about("Facedetector")
+      .version("0.1.0")
+      .author(crate_authors!())
+      .arg(Arg::with_name("detector")
+        .help("Detector path")
+        .required(true)
+        .index(1)))
     .get_matches();
 
     if let Some(ref matches) = matches.subcommand_matches("unskew") {
@@ -45,5 +57,12 @@ fn main() {
       .save();
 
       println!("1: {:?}", image);
+    }
+
+    if let Some(ref matches) = matches.subcommand_matches("face") {
+      let detector_path = matches.value_of("detector").unwrap();
+
+      let _face = Face::new(&detector_path, "", "", "")
+      .load();
     }
 }
