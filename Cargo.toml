@@ -7,4 +7,4 @@ edition = "2018"
 [workspace]
 
 [dependencies]
-skew = {path = "libs/skew"}
+unskew = {path = "libs/unskew"}

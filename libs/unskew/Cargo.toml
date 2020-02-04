@@ -1,5 +1,5 @@
 [package]
-name = "skew"
+name = "unskew"
 version = "0.1.0"
 authors = ["John Wennstrøm <john.wennstrom@protonmail.com>"]
 edition = "2018"

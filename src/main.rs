@@ -1,7 +1,7 @@
-extern crate skew;
+extern crate unskew;
 
 use std::env;
-use skew::Skew;
+use unskew::Unskew;
 
 fn main() {
     if env::args().len() != 3 {
@@ -13,7 +13,7 @@ fn main() {
 
     //let _skew_lines = unskew(&src, &dst);
 
-    let image = Skew::new(&src, &dst)
+    let image = Unskew::new(&src, &dst)
       .grayscale()
       .invert()
       .pad()
