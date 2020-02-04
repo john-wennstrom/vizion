@@ -15,6 +15,7 @@ use clap::{
 fn main() {
   let matches = App::new("Vizion")
     .setting(AppSettings::ArgRequiredElseHelp)
+    .setting(AppSettings::ColoredHelp)
     .version(crate_version!())
     .author(crate_authors!())
     .about("Computer vision library")
