@@ -16,6 +16,7 @@ fn main() {
     let image = Skew::new(&src, &dst)
       .grayscale()
       .invert()
+      .pad()
       .unskew()
       .save();
 
