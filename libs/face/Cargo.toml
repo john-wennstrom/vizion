@@ -1,11 +1,9 @@
 [package]
-name = "unswirl"
+name = "face"
 version = "0.1.0"
 authors = ["John Wennstrøm <john.wennstrom@protonmail.com>"]
 edition = "2018"
 
-[workspace]
-
 [dependencies]
-unskew = {path = "libs/unskew"}
-face = {path = "libs/face"}
+opencv = {version = "0.29", features = ["contrib"]}
+cast = "0.2.3"
