@@ -5,5 +5,5 @@ authors = ["John Wennstrøm <john.wennstrom@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
-opencv = {version = "0.29", features = ["contrib"]}
+opencv = {version = "0.29.1", features = ["contrib", "buildtime-bindgen", "opencv-4"]}
 cast = "0.2.3"

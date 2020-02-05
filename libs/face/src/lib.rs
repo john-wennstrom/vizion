@@ -4,6 +4,7 @@ extern crate cast;
 use opencv::{
   core as cv,
   dnn, 
+  dnn::{NetTrait},
   imgcodecs,
   imgproc
 };
@@ -17,7 +18,8 @@ pub struct Face<'s> {
   embedding_model_path: &'s str,
   confidence: f32,
   dataset: Result<Vec<PathBuf>, io::Error>,
-  detector: dnn::Net
+  detector: dnn::Net,
+  haar_classifier: &'s str
 }
 
 impl<'s> Face<'s> {
@@ -34,7 +36,8 @@ impl<'s> Face<'s> {
       embedding_model_path: embedding_model_path,
       confidence: 0.5,
       dataset: Ok(Vec::default()),
-      detector: dnn::Net::default().unwrap()
+      detector: dnn::Net::default().unwrap(),
+      haar_classifier: "vendor/opencv/data/haarcascades/haarcascade_frontalface_alt.xml"
     }
   }
 
@@ -60,7 +63,7 @@ impl<'s> Face<'s> {
       println!("Processing {:?}", path);
 
       // Resize image
-      let resize_result = imgproc::resize(
+      let _resize_result = imgproc::resize(
         &src, 
         &mut dst, 
         cv::Size_::new(300, 300), 
@@ -80,16 +83,16 @@ impl<'s> Face<'s> {
         false,
         false,
         cv::CV_32F
-      );
+      ).unwrap();
 
-      self.detector.set_input(
+      let _result = self.detector.set_input(
         &image_blob,
-        "name".to_owned(),
+        "name",
         1.0,
         mean
       );
 
-      println!("Result {:?}", image_blob.unwrap());
+      println!("Result {:?}", "test".to_owned());
     }
     
     Ok("Worked")
