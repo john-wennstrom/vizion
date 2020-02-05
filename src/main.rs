@@ -42,7 +42,11 @@ fn main() {
       .arg(Arg::with_name("detector")
         .help("Detector path")
         .required(true)
-        .index(1)))
+        .index(1))
+      .arg(Arg::with_name("dataset")
+        .help("Dataset path")
+        .required(true)
+        .index(2)))
     .get_matches();
 
     if let Some(ref matches) = matches.subcommand_matches("unskew") {
@@ -61,8 +65,10 @@ fn main() {
 
     if let Some(ref matches) = matches.subcommand_matches("face") {
       let detector_path = matches.value_of("detector").unwrap();
+      let dataset_path = matches.value_of("dataset").unwrap();
 
-      let _face = Face::new(&detector_path, "", "", "")
-      .load();
+      let _face = Face::new(dataset_path, "", &detector_path, "")
+      .run()
+      .detect();
     }
 }
