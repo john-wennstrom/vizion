@@ -1,9 +1,9 @@
 extern crate clap;
 extern crate unskew;
-extern crate face;
+extern crate face_detection;
 
 use unskew::Unskew;
-use face::Face;
+use face_detection::FaceDetection;
 
 use clap::{
   crate_version, 
@@ -35,16 +35,16 @@ fn main() {
           .required(true)
           .index(2)))
     
-    .subcommand(SubCommand::with_name("face")
+    .subcommand(SubCommand::with_name("face-detection")
       .about("Facedetector")
       .version("0.1.0")
       .author(crate_authors!())
-      .arg(Arg::with_name("detector")
-        .help("Detector path")
+      .arg(Arg::with_name("SRC")
+        .help("Input image")
         .required(true)
         .index(1))
-      .arg(Arg::with_name("dataset")
-        .help("Dataset path")
+      .arg(Arg::with_name("DST")
+        .help("Destination file")
         .required(true)
         .index(2)))
     .get_matches();
@@ -60,15 +60,18 @@ fn main() {
       .unskew()
       .save();
 
-      println!("1: {:?}", image);
+      println!("Result: {:?}", image);
     }
 
-    if let Some(ref matches) = matches.subcommand_matches("face") {
-      let detector_path = matches.value_of("detector").unwrap();
-      let dataset_path = matches.value_of("dataset").unwrap();
+    if let Some(ref matches) = matches.subcommand_matches("face-detection") {
+      let src = matches.value_of("SRC").unwrap();
+      let dst = matches.value_of("DST").unwrap();
+     
+      let face = FaceDetection::new(&src, &dst)
+        .detect()
+        .draw()
+        .save();
 
-      let _face = Face::new(dataset_path, "", &detector_path, "")
-      .run()
-      .detect();
+        println!("Result: {:?}", face);
     }
 }
