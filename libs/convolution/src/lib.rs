@@ -19,7 +19,9 @@ impl<'s> Convolve<'s> {
 
   pub fn convolve(self) -> Convolve<'s> {
     let mat: Matrix<i32> = Matrix::new(5, 5);
-    mat.conv();
+    let inp_mat: Matrix<i32> = Matrix::new(5, 5);
+
+    mat.conv(inp_mat);
 
     self
   }
