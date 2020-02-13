@@ -8,7 +8,7 @@ pub trait Convolution<T> {
 
 impl<T> Convolution<T> for Matrix<T>
 where
-    T: Convolution<Output = T>
+    T: Default
 {
     type Output = Matrix<T>;
     
