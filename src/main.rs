@@ -1,8 +1,10 @@
 extern crate clap;
 extern crate unskew;
+extern crate convolution;
 extern crate face_detection;
 
 use unskew::Unskew;
+use convolution::Convolution;
 use face_detection::FaceDetection;
 
 use clap::{
@@ -47,6 +49,19 @@ fn main() {
         .help("Destination file")
         .required(true)
         .index(2)))
+
+    .subcommand(SubCommand::with_name("convolution")
+        .about("Convolution")
+        .version("0.1.0")
+        .author(crate_authors!())
+        .arg(Arg::with_name("SRC")
+          .help("Input image")
+          .required(true)
+          .index(1))
+        .arg(Arg::with_name("DST")
+          .help("Destination file")
+          .required(true)
+          .index(2)))
     .get_matches();
 
     if let Some(ref matches) = matches.subcommand_matches("unskew") {
@@ -73,5 +88,14 @@ fn main() {
         .save();
 
         println!("Result: {:?}", face);
+    }
+
+    if let Some(ref matches) = matches.subcommand_matches("convolution") {
+      let src = matches.value_of("SRC").unwrap();
+      let dst = matches.value_of("DST").unwrap();
+     
+      let convolved = Convolution::new(&src, &dst).convolve();
+
+        println!("Result: {:?}", convolved);
     }
 }

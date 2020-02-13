@@ -38,7 +38,7 @@ impl<'s> FaceDetection<'s> {
       1.1,
       10,
       0,
-      cv::Size_::new(10, 10),
+      cv::Size_::new(6, 6),
       cv::Size_::new(1000, 1000)
     );
 
@@ -48,7 +48,7 @@ impl<'s> FaceDetection<'s> {
 
   pub fn draw(mut self) -> FaceDetection<'s> {
 
-    let color = cv::Scalar_::new(100.0, 55.0, 22.0, 0.0);
+    let color = cv::Scalar_::new(200.0, 155.0, 122.0, 0.0);
 
     for rect in &self.detections {
       println!("{:?}", rect);
@@ -57,7 +57,7 @@ impl<'s> FaceDetection<'s> {
         &mut self.final_image,
         rect,
         color,
-        4,
+        2,
         imgproc::LINE_8,
         0
       );

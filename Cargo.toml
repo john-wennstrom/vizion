@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 unskew = {path = "libs/unskew"}
+convolution = {path = "libs/convolution"}
 face_detection = {path = "libs/face_detection"}
 clap = "2.33.0"
