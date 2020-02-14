@@ -1,3 +1,6 @@
+extern crate image;
+
+use image::{GrayImage, load};
 use simple_matrix::Matrix;
 
 pub trait Convolution<T> {
