@@ -96,6 +96,6 @@ fn main() {
      
       let convolved = Convolve::new(&src, &dst).convolve();
 
-        //println!("Result: {:?}", convolved);
+      println!("Result: {:?}", convolved);
     }
 }
