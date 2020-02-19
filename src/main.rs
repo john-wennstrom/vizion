@@ -4,7 +4,7 @@ extern crate convolution;
 extern crate face_detection;
 
 use unskew::Unskew;
-use convolution::Convolve;
+use convolution::*;
 use face_detection::FaceDetection;
 
 use clap::{
@@ -93,9 +93,12 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("convolution") {
       let src = matches.value_of("SRC").unwrap();
       let dst = matches.value_of("DST").unwrap();
-     
-      let convolved = Convolve::new(&src, &dst).convolve();
 
-      println!("Result: {:?}", convolved);
+      let img = convolution::Img::new(src);
+
+      let conv2d = convolution::Conv2d::new();
+      let runner = convolution::Runner::new(img, conv2d);
+
+      println!("Result: {:?}", 1);
     }
 }
