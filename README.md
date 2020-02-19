@@ -19,4 +19,6 @@ Make sure .env file is configured, then run
 Run examples
 ```
 target/debug/vizion unskew examples/src1.png examples/dst.png
+target/debug/vizion face-detection examples/people.jpg examples/people2.png
+target/debug/vizion convolution examples/dependable.png examples/dependable.png
 ```
