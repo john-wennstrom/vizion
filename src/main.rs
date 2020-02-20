@@ -96,8 +96,9 @@ fn main() {
       let img = convolution::Img::new(src);
 
       let conv2d = convolution::Conv2d::new();
-      let _runner = convolution::Runner::new(img, conv2d);
+      let runner = convolution::Runner::new(img, conv2d);
+      let result = runner.run();
 
-      println!("Result: {:?}", 1);
+      println!("Result: {:?}", result);
     }
 }

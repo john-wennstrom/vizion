@@ -1,6 +1,8 @@
 
 extern crate image;
 
+use std::cmp;
+
 const KERNEL: [[i32; 3]; 3] = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
 const SHADE: u8 = 0;
 
@@ -11,6 +13,7 @@ pub struct Path<'s> {
 
 pub struct Conv2d {
   kernel: Vec<Vec<i32>>,
+  result: Vec<Vec<u8>>
 }
 
 #[derive(Clone)]
@@ -48,7 +51,8 @@ impl Conv2d {
     let kernel = Conv2d::prepare_kernel();
 
     Conv2d {
-      kernel: kernel
+      kernel: kernel,
+      result: vec![]
     }
   }
 
@@ -63,6 +67,51 @@ impl Conv2d {
     }
 
     kernel
+  }
+
+  pub fn run(mut self, img: Img) -> Conv2d {
+    let width = img.width as usize;
+    let height = img.height as usize;
+    let klen = self.kernel.len();
+    let constrain = |x: i32| { cmp::max(0, cmp::min(255 as i32, x)) };
+
+    // Border width used for padding
+    let w = (klen - 1) / 2;
+
+    let mut result: Vec<Vec<u8>> = vec![];
+
+    // Loop rows in image
+    for row in w..(height - w) {
+
+      let mut current_row: Vec<u8> = vec![];
+
+      // Loop pixels in row
+      for pixel in w..(width - w) {
+
+        // Calculated pixel
+        let mut calculated_pixel: i32 = 0;
+
+        // Apply kernel
+        // Loop kernel rows
+        for krow in 0..klen {
+
+          // Loop pixels in kernel row
+          for kpixel in 0..klen {
+            let row_offset = row + krow - w;
+            let col_offset = pixel + kpixel - w;
+            calculated_pixel += img.pixels[row_offset][col_offset] as i32 * self.kernel[krow][kpixel];
+          }
+        }
+
+        calculated_pixel = constrain(calculated_pixel);
+        current_row.push(calculated_pixel as u8);
+      }
+
+      result.push(current_row.clone());
+    }
+
+    self.result = result;
+    self
   }
 }
 
@@ -117,6 +166,8 @@ impl<'s> Img {
     }
 
     self.pixels = matrix;
+    self.width += (w * 2) as u32;
+    self.height += (w * 2) as u32;
     self
   }
 }
@@ -125,11 +176,18 @@ impl Runner {
   pub fn new(mut img: Img, convolution: Conv2d) -> Runner {
     img = img.add_border(convolution.kernel.len());
 
-    println!("{:?}", img.pixels);
+    println!("OLD {:?}", img.pixels);
     Runner {
       img: img,
       convolution: convolution
     }
+  }
+
+  pub fn run(self) -> Result<&'static str, &'static str> {
+    let conv2d = self.convolution.run(self.img);
+
+    println!("AFTER {:?}", conv2d.result);
+    Ok("Success")
   }
 
 }
