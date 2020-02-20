@@ -1,11 +1,10 @@
 
 extern crate image;
-use image::{RgbImage, ImageBuffer, Rgb};
-use std::io;
-use std::io::prelude::*;
 
 const KERNEL: [[i32; 3]; 3] = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
+const SHADE: u8 = 0;
 
+#[allow(dead_code)]
 pub struct Path<'s> {
   src: &'s str
 }
@@ -22,6 +21,7 @@ pub struct Img {
   pixels: Vec<Vec<u8>>
 }
 
+#[allow(dead_code)]
 pub struct Runner {
   img: Img,
   convolution: Conv2d
@@ -81,84 +81,51 @@ impl<'s> Img {
     }
   }
 
-  pub fn get_pixels(width: u32, height: u32, raw: &Vec<u8>) -> Vec<Vec<[u8; 3]>> {
-    let mut pixels: Vec<Vec<[u8; 3]>> = vec![vec![]];
+  pub fn get_pixels_gray(width: u32, height: u32, raw: &Vec<u8>) -> Vec<Vec<u8>> {
+    let w = width as usize;
+    let h = height as usize;
 
-    let mut pixel: [u8; 3] = [0, 0, 0];
-		let mut counter_pix: usize = 0; // Counter for R, G and B
-    let mut counter_row: usize = 0; // Counter for rows
-    
-    for i in raw.clone() {
+    let mut matrix: Vec<Vec<u8>> = vec![];
 
-      // Add R/G/B value to pixel
-      pixel[counter_pix] = i;
-
-      // If pixel is full, append it to image (using c2 as row index) and  set
-      // c1 as 0 to overwrite pixel RGB values
-      if counter_pix == 2 {
-        pixels[counter_row].push(pixel);
-        counter_pix = 0;
-      } else {
-
-        // Increase c1
-        counter_pix += 1;
-      }
-
-      // If the row has reached the end, and more rows can be pushed, increase c2 (and
-      // push a new row) otherwise break
-      if pixels[counter_row].len() as u32 == width {
-        if (pixels.len() as u32) < height {
-          pixels.push(vec![]);
-          counter_row += 1;
-        } else {
-          break;
-        }
-      }
+    for i in 0..h {
+      let row = &raw[(i * w)..((i * w) + w)].to_vec();
+      matrix.push(row.clone());
     }
 
-    println!("{:?}", pixels);
-
-    pixels
+    matrix
   }
 
-  pub fn get_pixels_gray(width: u32, height: u32, raw: Vec<u8>) -> Vec<Vec<u8>> {
-    let mut pixels: Vec<Vec<u8>> = vec![];
+  pub fn add_border(mut self, kernel_length: usize) -> Img {
+    let w = (kernel_length - 1) / 2;
 
-    for i in 0..height {
-      let mut row = &raw[i as usize..width as usize];
-
-
-      // If pixel is full, append it to image (using c2 as row index) and  set
-      // c1 as 0 to overwrite pixel RGB values
-      if counter_pix == 2 {
-        pixels[counter_row].push(pixel);
-        counter_pix = 0;
-      } else {
-
-        // Increase c1
-        counter_pix += 1;
-      }
-
-      // If the row has reached the end, and more rows can be pushed, increase c2 (and
-      // push a new row) otherwise break
-      if pixels[counter_row].len() as u32 == width {
-        if (pixels.len() as u32) < height {
-          pixels.push(vec![]);
-          counter_row += 1;
-        } else {
-          break;
-        }
-      }
+    // Top / Bottom border
+    for _ in 0..w {
+      self.pixels.insert(0, vec![SHADE; self.width as usize]);
+      self.pixels.push(vec![SHADE; self.width as usize]);
     }
 
-    println!("{:?}", pixels);
+    let mut matrix: Vec<Vec<u8>> = vec![];
 
-    pixels
+    // Left / Right borders
+    for mut row in self.pixels.clone() {
+      for _ in 0..w {
+        row.insert(0, SHADE);
+        row.push(SHADE);
+      }
+
+      matrix.push(row);
+    }
+
+    self.pixels = matrix;
+    self
   }
 }
 
 impl Runner {
-  pub fn new(img: Img, convolution: Conv2d) -> Runner {
+  pub fn new(mut img: Img, convolution: Conv2d) -> Runner {
+    img = img.add_border(convolution.kernel.len());
+
+    println!("{:?}", img.pixels);
     Runner {
       img: img,
       convolution: convolution
