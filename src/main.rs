@@ -91,14 +91,14 @@ fn main() {
 
     if let Some(ref matches) = matches.subcommand_matches("convolution") {
       let src = matches.value_of("SRC").unwrap();
-      let _dst = matches.value_of("DST").unwrap();
+      let dst = matches.value_of("DST").unwrap();
 
       let img = convolution::Img::new(src);
 
-      let conv2d = convolution::Conv2d::new();
+      let conv2d = convolution::Conv2d::new(img.clone());
       let runner = convolution::Runner::new(img, conv2d);
-      let result = runner.run();
-
+      let result = runner.run().save(dst);
+    
       println!("Result: {:?}", result);
     }
 }

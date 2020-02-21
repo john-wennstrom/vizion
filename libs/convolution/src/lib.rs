@@ -1,5 +1,6 @@
 
 extern crate image;
+extern crate imagefmt;
 
 use std::cmp;
 
@@ -11,17 +12,19 @@ pub struct Path<'s> {
   src: &'s str
 }
 
-pub struct Conv2d {
-  kernel: Vec<Vec<i32>>,
-  result: Vec<Vec<u8>>
-}
-
 #[derive(Clone)]
 pub struct Img {
   width: u32,
   height: u32,
   raw: Vec<u8>,
   pixels: Vec<Vec<u8>>
+}
+
+#[derive(Clone)]
+pub struct Conv2d {
+  img: Img,
+  kernel: Vec<Vec<i32>>,
+  result: Vec<Vec<u8>>
 }
 
 #[allow(dead_code)]
@@ -47,10 +50,11 @@ impl<'s> Path<'s> {
 }
 
 impl Conv2d {
-  pub fn new() -> Conv2d {
+  pub fn new(img: Img) -> Conv2d {
     let kernel = Conv2d::prepare_kernel();
 
     Conv2d {
+      img: img,
       kernel: kernel,
       result: vec![]
     }
@@ -69,9 +73,9 @@ impl Conv2d {
     kernel
   }
 
-  pub fn run(mut self, img: Img) -> Conv2d {
-    let width = img.width as usize;
-    let height = img.height as usize;
+  pub fn run(self) -> Vec<Vec<u8>> {
+    let width = self.img.width as usize;
+    let height = self.img.height as usize;
     let klen = self.kernel.len();
     let constrain = |x: i32| { cmp::max(0, cmp::min(255 as i32, x)) };
 
@@ -99,7 +103,7 @@ impl Conv2d {
           for kpixel in 0..klen {
             let row_offset = row + krow - w;
             let col_offset = pixel + kpixel - w;
-            calculated_pixel += img.pixels[row_offset][col_offset] as i32 * self.kernel[krow][kpixel];
+            calculated_pixel += self.img.pixels[row_offset][col_offset] as i32 * self.kernel[krow][kpixel];
           }
         }
 
@@ -110,8 +114,7 @@ impl Conv2d {
       result.push(current_row.clone());
     }
 
-    self.result = result;
-    self
+    result
   }
 }
 
@@ -175,19 +178,43 @@ impl<'s> Img {
 impl Runner {
   pub fn new(mut img: Img, convolution: Conv2d) -> Runner {
     img = img.add_border(convolution.kernel.len());
-
-    println!("OLD {:?}", img.pixels);
+    
     Runner {
       img: img,
       convolution: convolution
     }
   }
 
-  pub fn run(self) -> Result<&'static str, &'static str> {
-    let conv2d = self.convolution.run(self.img);
+  pub fn run(mut self) -> Runner {
+    let convolution = self.convolution.clone();
+    self.convolution.result = convolution.run();
+    self
+  }
 
-    println!("AFTER {:?}", conv2d.result);
-    Ok("Success")
+  pub fn save(self, name: &str) -> bool {
+    let mut result: Vec<u8> = vec![];
+
+    for row in self.convolution.result.clone() {
+      for pixel in row {
+        result.push(pixel);
+        result.push(pixel);
+        result.push(pixel);
+      }
+    }
+
+    let result = imagefmt::write(
+      name,
+      self.convolution.result[0].len(), // width
+      self.convolution.result.len(),    // height
+      imagefmt::ColFmt::RGB,
+      &result[..],
+      imagefmt::ColType::Gray
+    );
+    
+    match result {
+      Ok(_) => true,
+      Err(_) => false
+    }
   }
 
 }
