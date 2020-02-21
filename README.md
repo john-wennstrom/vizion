@@ -1,4 +1,5 @@
-# unswirl
+# Vizion
+A computer visualitation tool with for instance face recognition, unskewing text and convolution. Face recognition and unskewing is using opencv. It runs in the console. Examples bellow. 
 
 ### Requirements
 * Opencv
