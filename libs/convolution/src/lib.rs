@@ -2,7 +2,9 @@
 extern crate image;
 extern crate imagefmt;
 
+
 use std::cmp;
+use std::time::{Instant};
 
 const KERNEL: [[i32; 3]; 3] = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
 const SHADE: u8 = 0;
@@ -74,6 +76,8 @@ impl Conv2d {
   }
 
   pub fn run(self) -> Vec<Vec<u8>> {
+    let now = Instant::now();
+
     let width = self.img.width as usize;
     let height = self.img.height as usize;
     let klen = self.kernel.len();
@@ -82,12 +86,14 @@ impl Conv2d {
     // Border width used for padding
     let w = (klen - 1) / 2;
 
-    let mut result: Vec<Vec<u8>> = vec![];
+    let mut result: Vec<Vec<u8>> = vec![vec![0; width - (klen - 1)]; height - (klen - 1)];
+    let mut i = 0;
 
     // Loop rows in image
     for row in w..(height - w) {
 
-      let mut current_row: Vec<u8> = vec![];
+      //let mut current_row: Vec<u8> = vec![];
+      let mut j = 0;
 
       // Loop pixels in row
       for pixel in w..(width - w) {
@@ -108,11 +114,18 @@ impl Conv2d {
         }
 
         calculated_pixel = constrain(calculated_pixel);
-        current_row.push(calculated_pixel as u8);
+        result[i][j] = calculated_pixel as u8;
+
+        j = j + 1;
       }
 
-      result.push(current_row.clone());
+      //result[i] = current_row;
+      i = i + 1;
     }
+
+    //println!("i: {}, height: {}", i, height);
+
+    println!("3: {} ms", now.elapsed().as_micros());
 
     result
   }

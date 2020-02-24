@@ -8,3 +8,6 @@ edition = "2018"
 simple-matrix = "0.1"
 image = "0.23.0"
 imagefmt = "4.0.0"
+
+[profile.release]
+opt-level = 1
