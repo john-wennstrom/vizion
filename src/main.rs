@@ -20,15 +20,27 @@ use clap::{
   AppSettings
 };
 */
+#![feature(drain_filter)]
 
+#[macro_use]
+extern crate lazy_static;
+
+extern crate tungstenite;
 extern crate termion;
 extern crate regex;
 extern crate liner;
+extern crate scancode;
 
 use liner::{Completer, Context, FilenameCompleter};
 use regex::Regex;
 use termion::color;
 use std::io;
+use std::char;
+use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex};
+use std::net::{TcpListener, TcpStream};
+use tungstenite::server::accept;
+use scancode::Scancode;
 
 struct CommentCompleter {
   inner: Option<FilenameCompleter>,
@@ -36,8 +48,8 @@ struct CommentCompleter {
 
 
 // This prints out the text back onto the screen
-fn highlight_dodo(s: &str) -> String {
-  let reg_exp = Regex::new("(?P<k>dodo)").unwrap();
+fn highlight(s: &str) -> String {
+  let reg_exp = Regex::new("(?P<k>test)").unwrap();
   let format = format!("{}$k{}", color::Fg(color::Red), color::Fg(color::Reset));
   reg_exp.replace_all(s, format.as_str()).to_string()
 }
@@ -57,33 +69,71 @@ impl Completer for CommentCompleter {
 fn main() {
 
   let mut con = Context::new();
-    let mut completer = CommentCompleter { inner: None };
+  let mut completer = CommentCompleter { inner: None };
 
+  let (tx, rx) = channel::<String>();
+  let server = TcpListener::bind("127.0.0.1:3012").unwrap();
+
+  println!("Websocket server running: {:?}", server);
+
+  let clients: Arc<Mutex<Vec<tungstenite::protocol::WebSocket<TcpStream>>>> = Arc::new(Mutex::new(vec![]));
+
+  let cx1 = clients.clone();
+    std::thread::spawn(move || {
+        while let Ok(c) = rx.recv() {
+            match cx1.lock() {
+                Ok(mut xs) => {
+                    xs.drain_filter(|client| {
+                        match client.write_message(tungstenite::Message::Text(c.to_string())) {
+                            Err(_) => true,
+                            Ok(()) => false,
+                        }
+                    }).for_each(|_| {});
+                }
+                Err(_) => {
+                    println!("Poisoned lock");
+                    panic!();
+                }
+            };
+        }
+    });
+
+  let cx2 = clients.clone();
+    std::thread::spawn(move || {
+        for stream in server.incoming() {
+            let mut websocket = accept(stream.unwrap()).unwrap();
+
+            match cx2.lock() {
+                Ok(mut xs) => xs.push(websocket),
+                Err(_) => {
+                    println!("Poisoned lock");
+                    panic!();
+                }
+            }
+        }
+    });
 
     loop {
       let res = con.read_line(
         "[prompt]\n% ",
-        Some(Box::new(highlight_dodo)),
+        Some(Box::new(highlight)),
         &mut completer,
       );
 
       match res {
         Ok(res) => {
             match res.as_str() {
-                "emacs" => {
-                    con.key_bindings = liner::KeyBindings::Emacs;
-                    println!("emacs mode");
-                }
-                "vi" => {
-                    con.key_bindings = liner::KeyBindings::Vi;
-                    println!("vi mode");
+                "test" => {
+                    tx.send(String::from("test")).expect("Channel is not open");
                 }
                 "exit" | "" => {
                     println!("exiting...");
                     break;
                 }
                 // If all else fails, do nothing
-                _ => {}
+                _ => {
+                  tx.send(String::from("Wrote something else")).expect("Channel is not open");
+                }
             }
 
             // If we typed nothing, don't continue down to pushing to history
